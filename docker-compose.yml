@@ -1,0 +1,57 @@
+services:
+  front:
+    build: ./frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "8251:80"
+    healthcheck:
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 2s
+    depends_on:
+      backend:
+        condition: service_healthy
+  redis:
+    image: redis:8.6.2-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      start_period: 5s
+  db:
+    image: postgres:18.3-alpine3.23
+    volumes:
+      - ./db_data:/var/lib/postgresql
+    environment:
+      - POSTGRES_PASSWORD=pswd
+      - POSTGRES_USER=usr
+      - POSTGRES_DB=default_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U usr -d default_db"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "8512:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+
+
+    
