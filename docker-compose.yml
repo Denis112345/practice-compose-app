@@ -52,6 +52,57 @@ services:
       redis:
         condition: service_healthy
 
+  node-expoter:
+    image: prom/node-exporter:master
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro
+    command:
+      - '--path.rootfs=/host'
+    networks:
+      - monitor-net
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    privileged: true
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitor-net
+    devices:
+      - /dev/kmsg # Помогает cAdvisor корректно собирать статистику
+  prometheus:
+    image: prom/prometheus:main
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/prometheus.yml:ro
+    command: 
+      - '--config.file=/prometheus.yml'
+    depends_on:
+      - cadvisor
+      - node-exporter
+    networks:
+      - monitor-net
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3005:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - monitor-net
 
-    
+networks:
+  monitor-net:
+    driver: bridge
+
