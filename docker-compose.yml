@@ -118,6 +118,9 @@ services:
     command: ["--insecure-registry", "registry:5000"]
     volumes:
       - jenkins_data:/var/jenkins_home
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
 
   jenkins:
     build: ./jenkins/
@@ -136,6 +139,9 @@ services:
       - monitor-net
     depends_on:
         - docker-dind
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
 
 networks:
   monitor-net:

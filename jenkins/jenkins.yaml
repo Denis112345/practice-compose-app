@@ -28,7 +28,7 @@ jenkins:
             # Указываем мета-данные для контейнера агента воркера 
             labelString: "docker-agent"
             dockerTemplateBase:
-              image: "jenkins/agent:jdk17"
+              image: "jenkins/agent:jdk21"
               cpuPeriod: 0
               cpuQuota: 0
             remoteFs: "/home/jenkins/agent"

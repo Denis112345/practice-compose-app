@@ -15,6 +15,7 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
+                sh 'apk add --no-cache docker-cli'
 				sh 'docker build ./${SERVICE}/ -t ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
                 sh 'docker push ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
 			}
