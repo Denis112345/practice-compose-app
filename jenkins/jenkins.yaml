@@ -8,12 +8,3 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
-  clouds:
-    - docker:
-      name: "docker-cloud"
-      dockerApi:
-        dockerHost: "unix:///var/run/docker.sock" # Для общения мастера напрямую с докером хоста
-      templates:
-        - image: "jenkins/agent:latest-jdk17"
-          label: "docker-agent"
-          remoteFs: "/home/jenkins"

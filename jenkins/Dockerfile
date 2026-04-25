@@ -1,19 +1,19 @@
-FROM jenkins/jenkins:2.561
+FROM jenkins/jenkins:jdk17
 
 USER root
 
-RUN chown jenkins:jenkins /var/jenkins_home
-RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
+COPY --from=docker:27-cli /usr/local/bin/docker /usr/local/bin/docker
+RUN mkdir -p /var/jenkins_home && chown -R jenkins:jenkins /var/jenkins_home
+RUN chmod +x /usr/local/bin/docker
 
 USER jenkins
 
-# Убираем инит запуск с дефолт паролями
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+ENV CASC_JENKINS_CONFIG="/var/jenkins_home/jenkins.yaml"
 
-# Ставим плагины
+# Копируем список плагинов
 COPY --chown=jenkins:jenkins plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN JENKINS_UC="https://updates.jenkins.io" \
-    jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
-# Копируем конфиг JCasC
+RUN jenkins-plugin-cli --verbose --plugin-file /usr/share/jenkins/ref/plugins.txt
+
 COPY --chown=jenkins:jenkins jenkins.yaml /var/jenkins_home/jenkins.yaml

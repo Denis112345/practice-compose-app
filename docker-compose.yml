@@ -102,24 +102,35 @@ services:
     networks:
       - monitor-net
 
+  docker-dind:
+    image: docker:27-dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    volumes:
+      - jenkins_docker_certs:/certs/client
+      - jenkins_data:/var/jenkins_home
+
   jenkins:
     build: ./jenkins/
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
-      - CASC_JENKINS_CONFIG="/home/jenkins.yaml"
+      - DOCKER_HOST=tcp://docker-dind:2375
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     volumes:
-      - ./jenkins_data:/var/jenkins_home
+      - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - default
       - monitor-net
+    depends_on:
+        - docker-dind
 
 networks:
   monitor-net:
     driver: bridge
 
 volumes:
-  jenkins_home:
+  jenkins_data:
+  jenkins_docker_certs:
