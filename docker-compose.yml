@@ -118,8 +118,10 @@ services:
     environment:
       - DOCKER_HOST=tcp://docker-dind:2375
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - CASC_JENKINS_CONFIG=/usr/share/jenkins/ref/jenkins.yaml
     volumes:
       - jenkins_data:/var/jenkins_home
+      - ./jenkins/jenkins.yaml:/usr/share/jenkins/ref/jenkins.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - default

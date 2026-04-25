@@ -9,11 +9,11 @@ RUN chmod +x /usr/local/bin/docker
 USER jenkins
 
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
-ENV CASC_JENKINS_CONFIG="/var/jenkins_home/jenkins.yaml"
+ENV CASC_JENKINS_CONFIG="/usr/share/jenkins/ref/jenkins.yaml"
 
 # Копируем список плагинов
 COPY --chown=jenkins:jenkins plugins.txt /usr/share/jenkins/ref/plugins.txt
 
 RUN jenkins-plugin-cli --verbose --plugin-file /usr/share/jenkins/ref/plugins.txt
 
-COPY --chown=jenkins:jenkins jenkins.yaml /var/jenkins_home/jenkins.yaml
+COPY --chown=jenkins:jenkins jenkins.yaml /usr/share/jenkins/ref/jenkins.yaml
