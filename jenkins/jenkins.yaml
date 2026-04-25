@@ -28,10 +28,10 @@ jenkins:
             # Указываем мета-данные для контейнера агента воркера 
             labelString: "docker-agent"
             dockerTemplateBase:
-              image: "docker:27-cli"
+              image: "jenkins/agent:latest-jdk21"
               cpuPeriod: 0
               cpuQuota: 0
-            remoteFs: "/home/jenkins/agent"
+            remoteFs: "/home/jenkins"
             connector: "attach"
             pullStrategy: PULL_ALWAYS
             pullTimeout: 300
