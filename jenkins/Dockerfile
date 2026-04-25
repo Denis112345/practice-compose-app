@@ -2,6 +2,7 @@ FROM jenkins/jenkins:2.561
 
 USER root
 
+RUN chown jenkins:jenkins /var/jenkins_home
 RUN apt-get update && apt-get install -y docker.io && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
