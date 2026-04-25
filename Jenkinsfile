@@ -16,13 +16,6 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
-                sh '''
-                    if command -v apk >/dev/null; then
-                        apk add --no-cache docker-cli
-                    else
-                        sudo apt-get update && sudo apt-get install -y docker.io
-                    fi
-                '''
 				sh 'docker build ./${SERVICE}/ -t ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
                 sh 'docker push ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
 			}
