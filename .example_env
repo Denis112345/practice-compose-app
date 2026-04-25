@@ -1,2 +1,1 @@
-CASC_JENKINS_CONFIG='./.env'
 ADMIN_PASSWORD='exmaple-password'
