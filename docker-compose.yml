@@ -102,7 +102,24 @@ services:
     networks:
       - monitor-net
 
+  jenkins:
+    build: ./jenkins/
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - CASC_JENKINS_CONFIG="/home/jenkins.yaml"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - monitor-net
+
+
 networks:
   monitor-net:
     driver: bridge
+
 
