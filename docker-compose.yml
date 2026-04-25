@@ -52,7 +52,7 @@ services:
       redis:
         condition: service_healthy
 
-  node-expoter:
+  node-exporter:
     image: prom/node-exporter:master
     container_name: node-exporter
     restart: unless-stopped
@@ -116,7 +116,6 @@ services:
     networks:
       - default
       - monitor-net
-
 
 networks:
   monitor-net:
