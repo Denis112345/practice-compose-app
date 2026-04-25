@@ -111,7 +111,7 @@ services:
     environment:
       - CASC_JENKINS_CONFIG="/home/jenkins.yaml"
     volumes:
-      - jenkins_home:/var/jenkins_home
+      - ./jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - default
@@ -121,4 +121,5 @@ networks:
   monitor-net:
     driver: bridge
 
-
+volumes:
+  jenkins_home:
