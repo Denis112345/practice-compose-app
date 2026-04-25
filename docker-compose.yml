@@ -102,13 +102,21 @@ services:
     networks:
       - monitor-net
 
+  registry:
+    image: registry:2.8
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - "registry_data:/var/lib/registry"
+
   docker-dind:
     image: docker:27-dind
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=
+    command: ["--insecure-registry", "registry:5000"]
     volumes:
-      - jenkins_docker_certs:/certs/client
       - jenkins_data:/var/jenkins_home
 
   jenkins:
@@ -136,3 +144,4 @@ networks:
 volumes:
   jenkins_data:
   jenkins_docker_certs:
+  registry_data:

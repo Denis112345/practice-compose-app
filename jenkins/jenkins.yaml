@@ -1,4 +1,5 @@
 jenkins:
+  # Секция определения безопасности
   securityRealm:
     local:
       allowsSignup: false
@@ -8,3 +9,38 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
+  
+  # Секция определение воркеров
+  clouds:
+    # определяем что воркером будет у нас докер-контейнеры
+    - docker:
+        # Устанавливаем имя нашему клауду-докеру
+        name: "docker-cloud"
+        # Указываем как обращаться к докеру
+        dockerApi:
+          dockerHost:
+            uri: "tcp://docker-dind:2375"
+          connectTimeout: 60
+          readTimeout: 60
+        # Темплейт для контейнеров
+        templates:
+          - name: "docker-agent"
+            # Указываем мета-данные для контейнера агента воркера 
+            labelString: "docker-agent"
+            dockerTemplateBase:
+              image: "jenkins/agent:jdk17"
+              cpuPeriod: 0
+              cpuQuota: 0
+            remoteFs: "/home/jenkins/agent"
+            connector: "attach"
+            pullStrategy: PULL_ALWAYS
+            pullTimeout: 300
+  # Запрещаем запускать запускать пайплайны на мастере 
+  numExecutors: 0
+  slaveAgentPort: 50000
+
+unclassified:
+  location:
+    # Для правильного формирования ссылок
+    adminAddress: "admin@example.com"
+    url: "http://localhost:8080/"
