@@ -24,7 +24,7 @@ pipeline {
                 sh "docker push ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
 
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
-                    sh 'docker -H $HOST_IP:2375 restart practice-compose-app-$SERVICE'
+                    sh 'docker -H $HOST_IP:2375 restart practice-compose-app-$SERVICE-1'
                 }
                 
 			}
