@@ -16,8 +16,14 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
-                withCredentials([file(credentialsId: "${params.SERVICE}_env", variable: "ENV_FILE")]) {
-                    sh "cp \$ENV_FILE ./${params.SERVICE}/.env"
+                withCredentials([file(credentialsId: "frontend_env", variable: "ENV_FILE")]) {
+                    sh "cp \$ENV_FILE ./frontend/.env"
+                }
+                withCredentials([file(credentialsId: "backend_env", variable: "ENV_FILE")]) {
+                    sh "cp \$ENV_FILE ./backend/.env"
+                }
+                withCredentials([file(credentialsId: "compose_env", variable: "ENV_FILE")]) {
+                    sh "cp \$ENV_FILE .env"
                 }
 
 				sh "docker build --no-cache ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
@@ -25,7 +31,7 @@ pipeline {
 
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
                     sh 'docker -H $HOST_IP:2375 pull localhost:5000/$SERVICE:$REALISE_NAME'
-                    sh 'docker -H $HOST_IP:2375  rm -f practice-compose-app-$SERVICE-1'
+                    sh 'docker -H $HOST_IP:2375 compose up -d --force-recreate $SERVICE'
                 }
 			}
 		}
