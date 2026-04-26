@@ -13,7 +13,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-    restart: Always
+    restart: always
     networks:
       - monitor-net
       - default
