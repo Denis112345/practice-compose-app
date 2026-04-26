@@ -31,7 +31,7 @@ pipeline {
 
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
                     sh 'docker -H $HOST_IP:2375 pull localhost:5000/$SERVICE:$REALISE_NAME'
-                    sh 'docker -H $HOST_IP:2375 compose up -d --force-recreate $SERVICE'
+                    sh 'docker -H $HOST_IP:2375 compose -p practice-compose-app up -d --force-recreate $SERVICE'
                 }
 			}
 		}
