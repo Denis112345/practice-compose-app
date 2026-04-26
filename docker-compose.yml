@@ -14,6 +14,9 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - monitor-net
+      - default
   redis:
     image: redis:8.6.2-alpine
     healthcheck:
@@ -54,6 +57,9 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - monitor-net
+      - default
 
   node-exporter:
     image: prom/node-exporter:master
