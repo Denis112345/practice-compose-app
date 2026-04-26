@@ -26,8 +26,7 @@ pipeline {
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
                     sh 'docker -H $HOST_IP:2375 pull localhost:5000/$SERVICE:$REALISE_NAME'
                     sh 'docker -H $HOST_IP:2375  rm -f practice-compose-app-$SERVICE-1'
-                }docker rm -f practice-compose-app-front-1
-                
+                }
 			}
 		}
     }
