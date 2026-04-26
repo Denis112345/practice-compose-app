@@ -20,7 +20,7 @@ pipeline {
                     sh "cp \$ENV_FILE ./${params.SERVICE}/.env"
                 }
 
-				sh "docker build ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
+				sh "docker build --no-cache ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
                 sh "docker push ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
 
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
