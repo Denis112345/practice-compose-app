@@ -16,11 +16,11 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
-                withCredentials([file(credentialsId: "${SERVICE}_env", variable: 'ENV_FILE')]) {
-                    sh 'cp $ENV_FILE > ./$SERVICE/.env'
+                withCredentials([file(credentialsId: "${params.SERVICE}_env", variable: "ENV_FILE")]) {
+                    sh "cp \$ENV_FILE ./${params.SERVICE}/.env"
                 }
-				sh 'docker build ./${SERVICE}/ -t ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
-                sh 'docker push ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
+				sh "docker build ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
+                sh "docker push ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
 			}
 		}
     }
