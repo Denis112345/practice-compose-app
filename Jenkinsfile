@@ -10,7 +10,7 @@ pipeline {
 
     environment {
         REGISTRY = 'registry:5000'
-        DOCKER_HOST = 'tcp://docker-dind:2375'
+        DOCKER_HOST = 'tcp://172.17.0.1:2375'
     }
 
 	stages {

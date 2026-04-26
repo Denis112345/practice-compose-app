@@ -115,9 +115,13 @@ services:
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=
-    extra_hosts:
-      - "registry:host-gateway"
-    command: ["--insecure-registry", "registry:5000", "--insecure-registry", "172.17.0.1:5000"]
+    command: ["--insecure-registry", "registry:5000", "--insecure-registry", "192.168.32.109:5000"]
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
     volumes:
       - jenkins_data:/var/jenkins_home
 
@@ -137,7 +141,8 @@ services:
       - default
       - monitor-net
     depends_on:
-        - docker-dind
+      docker-dind:
+        condition: service_healthy
 
 networks:
   monitor-net:
