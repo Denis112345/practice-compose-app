@@ -16,8 +16,8 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
-                withCredentials([file(credentialsId: '${SERVICE}_env', variable: 'ENV_FILE')]) {
-                    sh 'echo $ENV_FILE > ./frontend/.env'
+                withCredentials([file(credentialsId: "${SERVICE}_env", variable: 'ENV_FILE')]) {
+                    sh 'cp $ENV_FILE > ./$SERVICE/.env'
                 }
 				sh 'docker build ./${SERVICE}/ -t ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
                 sh 'docker push ${REGISTRY}/${SERVICE}:${REALISE_NAME}'
