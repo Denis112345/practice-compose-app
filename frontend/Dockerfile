@@ -16,7 +16,8 @@ WORKDIR /app
 
 RUN addgroup -S gr && adduser -S usr -G gr
 
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 RUN chown -R usr:gr /app /var/cache /run /var/log /etc/nginx
@@ -24,5 +25,4 @@ USER usr
 
 EXPOSE 80
 
-# CMD ["nginx", "-g", "daemon off;"]
-CMD ["sleep", "1000"]
+CMD ["nginx", "-g", "daemon off;"]
