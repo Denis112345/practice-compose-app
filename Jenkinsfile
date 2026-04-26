@@ -19,8 +19,15 @@ pipeline {
                 withCredentials([file(credentialsId: "${params.SERVICE}_env", variable: "ENV_FILE")]) {
                     sh "cp \$ENV_FILE ./${params.SERVICE}/.env"
                 }
+
 				sh "docker build ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
                 sh "docker push ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
+
+                withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
+                    sh "export DOCKER_HOST=$HOST_IP"
+                }
+                
+                sh "docker compose restart practice-compose-app-$SERVICE-1"
 			}
 		}
     }
