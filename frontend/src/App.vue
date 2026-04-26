@@ -144,7 +144,7 @@ onMounted(async () => {
       <div class="brand">
         <span class="brand-mark">V</span>
         <div>
-          <h1>Vue Practice Login HI2</h1>
+          <h1>Vue Practice Login HI22</h1>
           <p>Vue, Node.js, PostgreSQL, Redis</p>
         </div>
       </div>
