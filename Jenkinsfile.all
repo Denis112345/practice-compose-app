@@ -19,8 +19,11 @@ pipeline {
 		stage('Build and Push Images') {
             parallel {
                 stage('frontend') {
+                    agent { label 'docker-agent' } 
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
+                        checkout scm
+                        
                         copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
 
                         sh "docker build --no-cache ./frontend/ -t ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
@@ -33,8 +36,11 @@ pipeline {
                     }
                 }
                 stage('backend') {
+                    agent { label 'docker-agent' } 
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
+                        checkout scm
+
                         copyEnvFile("backend_env", "ENV_FILE", "./backend/.env")
 
                         sh "docker build --no-cache ./backend/ -t ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND}"
