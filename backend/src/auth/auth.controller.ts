@@ -16,6 +16,7 @@ export class AuthController {
 
   @Post("login")
   login(@Body() body: { username?: string; password?: string }) {
+    console.log('test1')
     return this.auth.login(String(body.username || ""), String(body.password || ""));
   }
 
