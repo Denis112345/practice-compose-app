@@ -17,13 +17,22 @@ pipeline {
 
 	stages {
 		stage('Build and Push Images') {
+            stage('📥 Checkout Repository') {
+            steps {
+                    script {
+                        echo "Checkout в ${env.WORKSPACE}"
+                        checkout scm
+                        sh 'ls -la frontend/ backend/'
+                    }
+                }
+            }
             parallel {
                 stage('frontend') {
                     agent { label 'docker-agent' } 
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
                         checkout scm
-                        
+
                         copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
 
                         sh "docker build --no-cache ./frontend/ -t ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
