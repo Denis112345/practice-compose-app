@@ -19,15 +19,8 @@ pipeline {
 		stage('Build and Push Image') {
 			steps {
                 copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
-                // withCredentials([file(credentialsId: "frontend_env", variable: "ENV_FILE")]) {
-                //     sh "cp \$ENV_FILE ./frontend/.env"
-                // }
-                withCredentials([file(credentialsId: "backend_env", variable: "ENV_FILE")]) {
-                    sh "cp \$ENV_FILE ./backend/.env"
-                }
-                withCredentials([file(credentialsId: "compose_env", variable: "ENV_FILE")]) {
-                    sh "cp \$ENV_FILE .env"
-                }
+                copyEnvFile("backend_env", "ENV_FILE", "./backend/.env")
+                copyEnvFile("compose_env", "ENV_FILE", ".env")
 
 				sh "docker build --no-cache ./${params.SERVICE}/ -t ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
                 sh "docker push ${REGISTRY}/${params.SERVICE}:${params.REALISE_NAME}"
