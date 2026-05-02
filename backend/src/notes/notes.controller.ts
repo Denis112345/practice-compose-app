@@ -5,12 +5,6 @@ import { AuthGuard } from "../auth/auth.guard";
 import { AuthRequest } from "../auth/user.types";
 import { NotesService } from "./notes.service";
 
-@Controller("notes")
-@UseGuards(AuthGuard)
-export class NotesController {
-  constructor(private readonly notes: NotesService) {}
-
-  @Get()
   list(@Req() req: Request & AuthRequest) {
     return this.notes.list(req.user.id);
   }

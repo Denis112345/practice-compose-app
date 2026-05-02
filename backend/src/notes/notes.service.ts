@@ -24,7 +24,7 @@ export class NotesService {
       `,
       [ownerId],
     );
-    console.log('TEST')
+    console.log('TEST2')
     return result.rows;
   }
 
