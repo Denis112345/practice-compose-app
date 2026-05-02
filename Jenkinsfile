@@ -5,12 +5,6 @@ pipeline {
         label 'docker-agent'
     }
 
-    post {
-        beforeAgent {
-            showContentFile("txt/db.conf")
-        }
-    }
-
     parameters {
         choice(name: "SERVICE", choices: ['frontend', 'backend'], description: 'Какой проект ?')
         string(name: "REALISE_NAME", defaultValue: "1.0.0", description: 'Версия:')
@@ -22,6 +16,13 @@ pipeline {
     }
 
 	stages {
+        stage('📋 Show Config') {
+            steps {
+                script {
+                    showContentFile("txt/db.conf")
+                }
+            }
+        }
 		stage('Build and Push Image') {
 			steps {
                 copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
