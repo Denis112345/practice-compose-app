@@ -44,3 +44,15 @@ unclassified:
     # Для правильного формирования ссылок
     adminAddress: "admin@example.com"
     url: "http://localhost:8080/"
+  globalLibraries:
+      libraries:
+        - name: "my-shared-library" # Имя по которому будет вызываться библиотека
+          defaultVersion: "main" # Ветка тег или коммит по умолчанию
+          implicit: false # Если True, либа будет автоматически подключаться ко всем пайплайнам (@Library)
+          allowVersionOverride: true # Разрешать разработчикам указывать другую версию @Library('lib@dev')
+          retriever:
+            modernSCM:
+              scm:
+                git:
+                  remote: "https://github.com/Denis112345/shared_lib_jenkins.git"
+                  # credentailsId: "github-token-id" # Это если репо приватный надо указывать

@@ -1,3 +1,5 @@
+@Library('my-shared-library') _
+
 pipeline {
     agent {
         label 'docker-agent'
@@ -16,9 +18,10 @@ pipeline {
 	stages {
 		stage('Build and Push Image') {
 			steps {
-                withCredentials([file(credentialsId: "frontend_env", variable: "ENV_FILE")]) {
-                    sh "cp \$ENV_FILE ./frontend/.env"
-                }
+                copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
+                // withCredentials([file(credentialsId: "frontend_env", variable: "ENV_FILE")]) {
+                //     sh "cp \$ENV_FILE ./frontend/.env"
+                // }
                 withCredentials([file(credentialsId: "backend_env", variable: "ENV_FILE")]) {
                     sh "cp \$ENV_FILE ./backend/.env"
                 }
