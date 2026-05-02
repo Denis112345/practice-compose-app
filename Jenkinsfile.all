@@ -1,0 +1,71 @@
+@Library('my-shared-library') _
+
+pipeline {
+    agent {
+        label 'docker-agent'
+    }
+
+    parameters {
+        string(name: "REALISE_NAME_FRONTEND", defaultValue: "1.0.0", description: 'Версии frontend:')
+        string(name: "REALISE_NAME_BACKEND", defaultValue: "1.0.0", description: 'Версии backend:')
+    }
+
+    environment {
+        REGISTRY = 'registry:5000'
+        DOCKER_HOST = 'tcp://172.17.0.1:2375'
+    }
+
+	stages {
+		stage('Build and Push Images') {
+            parallel {
+                stage('frontend') {
+                    options { timeout(time: 5, unit: 'MINUTES') }
+                    steps {
+                        copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
+
+                        sh "docker build --no-cache ./frontend/ -t ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
+                        sh "docker push ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
+                    }
+                    post {
+                        failure {
+                            echo colorsLog.error('❌ Сборка упала — проверяй логи выше')
+                        }
+                    }
+                }
+                stage('backend') {
+                    options { timeout(time: 5, unit: 'MINUTES') }
+                    steps {
+                        copyEnvFile("backend_env", "ENV_FILE", "./backend/.env")
+
+                        sh "docker build --no-cache ./backend/ -t ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND}"
+                        sh "docker push ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND}"
+                    }
+                    post {
+                        failure {
+                            echo colorsLog.error('❌ Сборка упала — проверяй логи выше')
+                        }
+                    }
+                }
+
+            }
+		}
+
+        stage('Reload apps') {
+            steps {
+                withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
+                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/backend:${params.REALISE_NAME_BACKEND}"
+                    sh "docker -H ${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate backend"
+
+                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/frontend:${params.REALISE_NAME_FRONTEND}"
+                    sh "docker -H ${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate frontend"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            sh "docker rmi ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND} || true"
+            sh "docker rmi ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND} || true"
+        }
+    }
+}
