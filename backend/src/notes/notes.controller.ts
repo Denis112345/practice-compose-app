@@ -12,6 +12,7 @@ export class NotesController {
 
   @Get()
   list(@Req() req: Request & AuthRequest) {
+    console.log('GET ALL NOTES')
     return this.notes.list(req.user.id);
   }
 
