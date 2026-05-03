@@ -6,8 +6,8 @@ pipeline {
     }
 
     parameters {
-        string(name: "REALISE_NAME_FRONTEND", defaultValue: "1.0.0", description: 'Версии frontend:')
-        string(name: "REALISE_NAME_BACKEND", defaultValue: "1.0.0", description: 'Версии backend:')
+        string(name: "RELEASE_NAME_FRONTEND", defaultValue: "1.0.0", description: 'Версии frontend:')
+        string(name: "RELEASE_NAME_BACKEND", defaultValue: "1.0.0", description: 'Версии backend:')
     }
 
     environment {
@@ -34,8 +34,8 @@ pipeline {
                     steps {
                         copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
 
-                        sh "docker build --no-cache ./frontend/ -t ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
-                        sh "docker push ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND}"
+                        sh "docker build ./frontend/ -t ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
+                        sh "docker push ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
                     }
                     post {
                         failure {
@@ -49,8 +49,8 @@ pipeline {
                     steps {
                         copyEnvFile("backend_env", "ENV_FILE", "./backend/.env")
 
-                        sh "docker build --no-cache ./backend/ -t ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND}"
-                        sh "docker push ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND}"
+                        sh "docker build  ./backend/ -t ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
+                        sh "docker push ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
                     }
                     post {
                         failure {
@@ -64,10 +64,10 @@ pipeline {
         stage('Reload apps') {
             steps {
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
-                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/backend:${params.REALISE_NAME_BACKEND}"
+                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/backend:${params.RELEASE_NAME_BACKEND}"
                     sh "docker -H ${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate backend"
 
-                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/frontend:${params.REALISE_NAME_FRONTEND}"
+                    sh "docker -H ${HOST_IP}:2375 pull localhost:5000/frontend:${params.RELEASE_NAME_FRONTEND}"
                     sh "docker -H ${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate frontend"
                 }
             }
@@ -75,8 +75,8 @@ pipeline {
     }
     post {
         always {
-            sh "docker rmi ${REGISTRY}/frontend:${params.REALISE_NAME_FRONTEND} || true"
-            sh "docker rmi ${REGISTRY}/backend:${params.REALISE_NAME_BACKEND} || true"
+            sh "docker rmi ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND} || true"
+            sh "docker rmi ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND} || true"
         }
     }
 }
