@@ -58,10 +58,14 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
                     sh "docker -H \$${HOST_IP}:2375 pull localhost:5000/backend:${params.RELEASE_NAME_BACKEND}"
-                    sh "docker -H \$${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate backend"
+                    sh "docker -H \$${HOST_IP}:2375 compose -p practice-compose-app \
+                    --env-file ./backend/.env \
+                    up -d --no-deps --force-recreate backend"
 
                     sh "docker -H \$${HOST_IP}:2375 pull localhost:5000/frontend:${params.RELEASE_NAME_FRONTEND}"
-                    sh "docker -H \$${HOST_IP}:2375 compose -p practice-compose-app up -d --no-deps --force-recreate frontend"
+                    sh "docker -H \$${HOST_IP}:2375 compose -p practice-compose-app \
+                    --env-file ./frontend/.env \
+                    up -d --no-deps --force-recreate frontend"
                 }
             }
         }
