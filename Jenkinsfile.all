@@ -8,6 +8,7 @@ pipeline {
     parameters {
         string(name: "RELEASE_NAME_FRONTEND", defaultValue: "1.0.0", description: 'Версии frontend:')
         string(name: "RELEASE_NAME_BACKEND", defaultValue: "1.0.0", description: 'Версии backend:')
+        booleanParam(name: "ACCEPT_DEPLOY", defaultValue: true, description: 'Вы уверены ?')
     }
 
     environment {
@@ -20,6 +21,10 @@ pipeline {
             parallel {
                 stage('frontend') {
                     options { timeout(time: 5, unit: 'MINUTES') }
+                    when {
+                        changest './frontend/**'
+                        expression { params.ACCEPT_DEPLOY == 'true' }
+                    }
                     steps {
                         dir('frontend') {
                             copyEnvFile("frontend_env", "ENV_FILE", ".env")
@@ -36,6 +41,12 @@ pipeline {
                 }
                 stage('backend') {
                     options { timeout(time: 5, unit: 'MINUTES') }
+                    when {
+                        allOf {
+                            changest './backend/**'
+                            expression { params.ACCEPT_DEPLOY == 'true' }
+                        }
+                    }
                     steps {
                         dir('backend') {
                             sh 'ls -a'
