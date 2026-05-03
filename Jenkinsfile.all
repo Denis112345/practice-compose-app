@@ -70,7 +70,7 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES')
             }
             steps {
-                lock(resources: 'deploy-lock', inverseOrder: true) {
+                lock(resource: 'deploy-lock', inversePrecedence: true) {
                     timeout(time: 10, unit: 'MINUTES') {
                         input message: 'Образы готовы, деплоим в прод ?',
                             ok: 'Да!',

@@ -4,3 +4,4 @@ git
 configuration-as-code
 ansicolor
 pipeline-utility-steps
+lockable-resources
