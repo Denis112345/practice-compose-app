@@ -7,6 +7,7 @@ pipeline {
 
     parameters {
         string(name: "RELEASE_NAME_FRONTEND", defaultValue: "1.0.0", description: 'Версии frontend:')
+        string(name: "RELEASE_NAME_BACKEND", defaultValue: "1.0.0", description: 'Версии backend:')
         booleanParam(name: "ACCEPT_DEPLOY", defaultValue: true, description: 'Вы уверены ?')
     }
 
