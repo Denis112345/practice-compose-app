@@ -22,7 +22,7 @@ pipeline {
                 stage('frontend') {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     when {
-                        changest './frontend/**'
+                        changeset './frontend/**'
                         expression { params.ACCEPT_DEPLOY == 'true' }
                     }
                     steps {
@@ -43,7 +43,7 @@ pipeline {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     when {
                         allOf {
-                            changest './backend/**'
+                            changeset './backend/**'
                             expression { params.ACCEPT_DEPLOY == 'true' }
                         }
                     }
