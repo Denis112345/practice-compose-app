@@ -16,45 +16,37 @@ pipeline {
     }
 
 	stages {
-        stage('Checkout') {
-            agent { label 'docker-agent' }
-            steps {
-                script {
-                    echo "Checkout в ${env.WORKSPACE}"
-                    checkout scm
-                    sh 'ls -la frontend/ backend/'
-                }
-            }
-        }
 		stage('Build and Push Images') {
             parallel {
                 stage('frontend') {
-                    agent { label 'docker-agent' } 
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
-                        copyEnvFile("frontend_env", "ENV_FILE", "./frontend/.env")
+                        dir('frontend') {
+                            copyEnvFile("frontend_env", "ENV_FILE", ".env")
 
-                        sh "docker build ./frontend/ -t ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
-                        sh "docker push ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
+                            sh "docker build ./frontend/ -t ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
+                            sh "docker push ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
+                        }
                     }
                     post {
                         failure {
-                            echo colorsLog.error('❌ Сборка упала — проверяй логи выше')
+                            echo colorsLog.error('❌ Сборка frontend упала — проверяй логи выше')
                         }
                     }
                 }
                 stage('backend') {
-                    agent { label 'docker-agent' } 
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
-                        copyEnvFile("backend_env", "ENV_FILE", "./backend/.env")
+                        dir('backend') {
+                            copyEnvFile("backend_env", "ENV_FILE", ".env")
 
-                        sh "docker build  ./backend/ -t ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
-                        sh "docker push ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
+                            sh "docker build  ./backend/ -t ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
+                            sh "docker push ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
+                        }
                     }
                     post {
                         failure {
-                            echo colorsLog.error('❌ Сборка упала — проверяй логи выше')
+                            echo colorsLog.error('❌ Сборка backend упала — проверяй логи выше')
                         }
                     }
                 }
