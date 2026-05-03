@@ -22,8 +22,10 @@ pipeline {
                 stage('frontend') {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     when {
-                        changeset './frontend/**'
-                        expression { params.ACCEPT_DEPLOY == 'true' }
+                        allOf {
+                            changeset './frontend/**'
+                            expression { params.ACCEPT_DEPLOY == true }
+                        }
                     }
                     steps {
                         dir('frontend') {
@@ -44,7 +46,7 @@ pipeline {
                     when {
                         allOf {
                             changeset './backend/**'
-                            expression { params.ACCEPT_DEPLOY == 'true' }
+                            expression { params.ACCEPT_DEPLOY == true }
                         }
                     }
                     steps {
