@@ -71,7 +71,7 @@ pipeline {
                 lock(resources: 'deploy-lock', inverseOrder: true)
             }
             steps {
-                input message 'Образы готовы, деплоим в прод ?'
+                input message: 'Образы готовы, деплоим в прод ?'
                     ok: 'Да!'
                     submitter: 'admin'
                 
