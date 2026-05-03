@@ -66,7 +66,15 @@ pipeline {
             }
 		}
         stage('Reload apps') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+                lock(resources: 'deploy-lock', inverseOrder: true)
+            }
             steps {
+                input message 'Образы готовы, деплоим в прод ?',
+                    ok: 'Да!'
+                    submitter: 'admin'
+                
                 withCredentials([string(credentialsId: "local_ip_host", variable: "HOST_IP")]) {
                     sh '''
                         docker -H "$HOST_IP:2375" pull localhost:5000/backend:1.0.0
