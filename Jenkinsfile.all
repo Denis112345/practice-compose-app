@@ -22,9 +22,17 @@ pipeline {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     steps {
                         dir('frontend') {
-                            copyEnvFile("frontend_env", "ENV_FILE", "./.env")
+                            sh '''
+                                echo "👤 Кто я: $(id)"
+                                echo "📁 Права на директорию: $(ls -ld .)"
+                                echo "📄 Есть ли .env: $(ls -la .env 2>&1 || echo 'файла нет')"
+                                echo "🧪 Пробуем создать тестовый файл:"
+                                touch test-write.txt && echo "✅ Запись возможна" || echo "❌ Запись запрещена"
+                                rm -f test-write.txt
+                            '''
+                            copyEnvFile("frontend_env", "ENV_FILE", ".env")
 
-                            sh "docker build ./frontend/ -t ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
+                            sh "docker build ./frontend/ -t ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND} ." 
                             sh "docker push ${REGISTRY}/frontend:${params.RELEASE_NAME_FRONTEND}"
                         }
                     }
@@ -39,9 +47,9 @@ pipeline {
                     steps {
                         dir('backend') {
                             sh 'ls -a'
-                            copyEnvFile("backend_env", "ENV_FILE", "./.env")
+                            copyEnvFile("backend_env", "ENV_FILE", ".env")
 
-                            sh "docker build  ./backend/ -t ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
+                            sh "docker build  ./backend/ -t ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND} ."
                             sh "docker push ${REGISTRY}/backend:${params.RELEASE_NAME_BACKEND}"
                         }
                     }
