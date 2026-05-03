@@ -23,7 +23,6 @@ pipeline {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     when {
                         allOf {
-                            changeset './frontend/**'
                             expression { params.ACCEPT_DEPLOY == true }
                         }
                     }
@@ -45,7 +44,6 @@ pipeline {
                     options { timeout(time: 5, unit: 'MINUTES') }
                     when {
                         allOf {
-                            changeset './backend/**'
                             expression { params.ACCEPT_DEPLOY == true }
                         }
                     }
