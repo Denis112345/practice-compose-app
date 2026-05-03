@@ -17,13 +17,11 @@ pipeline {
 
 	stages {
 		stage('Build and Push Images') {
-            stage('📥 Checkout Repository') {
             steps {
-                    script {
-                        echo "Checkout в ${env.WORKSPACE}"
-                        checkout scm
-                        sh 'ls -la frontend/ backend/'
-                    }
+                script {
+                    echo "Checkout в ${env.WORKSPACE}"
+                    checkout scm
+                    sh 'ls -la frontend/ backend/'
                 }
             }
             parallel {
