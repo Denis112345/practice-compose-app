@@ -3,3 +3,9 @@
 */dist/
 db_data/
 .env
+gitlab_config/
+gitlab_data/
+gitlab_log/
+jenkins_data/
+registry_data/
+.codex

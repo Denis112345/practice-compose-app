@@ -1,0 +1,173 @@
+services:
+  frontend:
+    image: localhost:5000/frontend:1.0.0
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "8251:80"
+    healthcheck:
+      interval: 5s
+      timeout: 2s
+      retries: 2
+      start_period: 2s
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: always
+    networks:
+      - monitor-net
+      - default
+  redis:
+    image: localhost:5000/redis:8.6.2-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      start_period: 5s
+    restart: unless-stopped
+  db:
+    image: localhost:5000/postgres:18.3-alpine3.23
+    volumes:
+      - ./db_data:/var/lib/postgresql
+    environment:
+      - POSTGRES_PASSWORD=pswd
+      - POSTGRES_USER=usr
+      - POSTGRES_DB=default_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U usr -d default_db"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+  backend:
+    image: localhost:5000/backend:1.0.0
+    env_file:
+      - ./backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "8512:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - monitor-net
+      - default
+
+  node-exporter:
+    image: localhost:5000/prom/node-exporter:master
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro
+    command:
+      - '--path.rootfs=/host'
+    networks:
+      - monitor-net
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    privileged: true
+    container_name: cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitor-net
+    devices:
+      - /dev/kmsg # Помогает cAdvisor корректно собирать статистику
+  prometheus:
+    image: prom/prometheus:main
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/prometheus.yml:ro
+    command: 
+      - '--config.file=/prometheus.yml'
+    depends_on:
+      - cadvisor
+      - node-exporter
+    networks:
+      - monitor-net
+    restart: unless-stopped
+    
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3005:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+  registry:
+    image: registry:2.8
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:5000:5000"
+    volumes:
+      - "./registry_data:/var/lib/registry"
+
+  docker-dind:
+    image: docker:27-dind
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    command: ["--insecure-registry", "registry:5000", "--insecure-registry", "192.168.32.109:5000"]
+    healthcheck:
+      test: ["CMD", "docker", "info"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: '4G'
+    container_name: gitlab
+    restart: unless-stopped
+    hostname: 'localhost'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8929'
+        gitlab_rails['time_zone'] = 'UTC'
+        prometheus_monitoring['enable'] = false
+    ports:
+      - '8929:8929'
+      - '8922:22'
+    volumes:
+      - ./gitlab_config:/etc/gitlab
+      - ./gitlab_data:/var/opt/data
+      - ./gitlab_log:/vat/log/gitlab
+    networks:
+      - gitlab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:8929/explore"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  monitor-net:
+    driver: bridge
+  gitlab-network:
+    external: true
