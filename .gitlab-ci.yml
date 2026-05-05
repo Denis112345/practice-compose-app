@@ -36,10 +36,11 @@ test:
     - npm ci
     - npm run test:dist
 
-build-docker-image:
+build-and-docker-image:
   stage: build-docker-image
   tags:
     - docker
   script:
     - cd backend
     - docker build -t registry:5000/backend:1.0.0 .
+    - docker push registry:5000/backend:1.0.0
