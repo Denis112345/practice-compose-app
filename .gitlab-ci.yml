@@ -4,22 +4,24 @@ workflow:
       when: always
 
 stages:
-  - build
+  - build-app
   - test
+  - build-docker-image
 
-build:
-  stage: build
+build-app:
+  stage: build-app
   tags:
     - docker
+  image: node:20-slim
   script:
     - cd backend
-    - docker build -t registry:5000/backend:1.0.0 .
+    - npm i
+    - npm run build
   artifacts:
     paths:
       - backend/dist
       - backend/package.json
       - backend/package-lock.json
-    expire_in: 1 hour
 
 test:
   stage: test
@@ -27,9 +29,17 @@ test:
     - docker
   image: node:20-slim
   needs:
-    - job: build
+    - job: build-app
       artifacts: true
   script:
     - cd backend
     - npm ci
     - npm run test
+
+build-docker-image:
+  stage: build-docker-image
+  tags:
+    - docker
+  script:
+    - cd backend
+    - docker build -t registry:5000/backend:1.0.0 .
