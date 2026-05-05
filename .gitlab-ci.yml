@@ -1,11 +1,25 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE = "push" && $CI_PIPELINE_BRANCH == "main"'
+      when: always
+
 stages:
   - build
+  - test
 
 build:
   stage: build
   tags:
     - docker
-  when: manual
   script:
     - cd backend
     - docker build -t registry:5000/backend:1.0.0 .
+
+test:
+  stage: test
+  tags:
+    - docker
+  image: oven/bun:20-slim
+  script:
+    - cd backend
+    - npm run test
