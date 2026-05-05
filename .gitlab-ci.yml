@@ -1,13 +1,11 @@
 stages:
   - build
-  - test
-  - deploy
 
 build:
   stage: build
-  tags: [docker]
+  tags:
+    - docker
+  when: manual
   script:
     - cd backend
     - docker build -t registry:5000/backend:1.0.0 .
-
-when: manual
