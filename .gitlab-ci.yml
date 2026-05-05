@@ -19,7 +19,7 @@ test:
   stage: test
   tags:
     - docker
-  image: oven/bun:20-slim
+  image: oven/bun:canary
   script:
     - cd backend
     - npm run test
