@@ -19,7 +19,7 @@ build:
       - backend/dist
       - backend/package.json
       - backend/package-lock.json
-    expirt_in: 1 hour
+    expire_in: 1 hour
 
 test:
   stage: test
