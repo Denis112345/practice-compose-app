@@ -22,4 +22,5 @@ test:
   image: node:20-slim
   script:
     - cd backend
+    - npm i
     - npm run test
