@@ -34,13 +34,8 @@ test:
   script:
     - cd backend
     - npm ci
-    - echo "SOURCE TESTS:"
-    - find src -name "*.test.ts" -o -name "*.spec.ts"
-    - npm run build
-    - echo "DIST FILES:"
-    - find dist -type f
-    - echo "DIST TESTS:"
-    - find dist -name "*.test.js" -o -name "*.spec.js"
+    - npm run test:dist
+
 build-docker-image:
   stage: build-docker-image
   tags:
