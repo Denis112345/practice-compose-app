@@ -14,13 +14,22 @@ build:
   script:
     - cd backend
     - docker build -t registry:5000/backend:1.0.0 .
+  artifacts:
+    paths:
+      - backend/dist
+      - backend/package.json
+      - backend/package-lock.json
+    expirt_in: 1 hour
 
 test:
   stage: test
   tags:
     - docker
   image: node:20-slim
+  needs:
+    - job: build
+      artifacts: true
   script:
     - cd backend
-    - npm i
+    - npm ci
     - npm run test
