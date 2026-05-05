@@ -9,3 +9,4 @@ gitlab_log/
 jenkins_data/
 registry_data/
 .codex
+runner_config/
