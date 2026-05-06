@@ -2,6 +2,9 @@ workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       when: always
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+    - when: never
 
 stages:
   - build-app
@@ -52,5 +55,8 @@ restart-backend:
     - docker
   script:
     - cd "$CI_PROJECT_DIR"
+    - cp $compose_project_backend_env backend/.env
+    - cp $compose_project_frontend_env backend/.env
+    - cp $compose_project_env .env
     - docker compose -f docker-compose-gitlab.yml pull backend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
