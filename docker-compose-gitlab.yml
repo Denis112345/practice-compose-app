@@ -120,6 +120,8 @@ services:
       - "0.0.0.0:5000:5000"
     volumes:
       - "./registry_data:/var/lib/registry"
+    networks:
+    - gitlab-network
 
   docker-dind:
     image: docker:27-dind
