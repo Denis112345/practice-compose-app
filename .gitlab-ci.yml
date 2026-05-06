@@ -42,5 +42,5 @@ build-and-docker-image:
     - docker
   script:
     - cd backend
-    - docker build -t registry:5000/backend:1.0.0 .
-    - docker push registry:5000/backend:1.0.0
+    - docker build -t localhost:5000/backend:1.0.0 .
+    - docker push localhost:5000/backend:1.0.0
