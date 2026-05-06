@@ -46,6 +46,7 @@ backend:
     - docker
   script:
     - cd backend
+    - cp $compose_project_backend_env .env
     - docker build -t localhost:5000/backend:1.0.0 .
     - docker push localhost:5000/backend:1.0.0
   rules:
@@ -58,6 +59,7 @@ frontend:
     - docker
   script:
     - cd frontend
+    - cp $compose_project_frontend_env .env
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
   rules:
