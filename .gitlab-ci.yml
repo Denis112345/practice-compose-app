@@ -19,7 +19,7 @@ build-app:
   image: node:20-slim
   script:
     - cd backend
-    - npm i
+    - npm ci
     - npm run build
   artifacts:
     paths:
@@ -40,7 +40,7 @@ test:
     - npm ci
     - npm run test:dist
 
-build-and-push-docker-image:
+backend:
   stage: build-and-push-docker-image
   tags:
     - docker
@@ -48,8 +48,23 @@ build-and-push-docker-image:
     - cd backend
     - docker build -t localhost:5000/backend:1.0.0 .
     - docker push localhost:5000/backend:1.0.0
+  rules:
+    - changes:
+      - backend/**/*
 
-restart-backend:
+frontend:
+  stage: build-and-push-docker-image
+  tags:
+    - docker
+  script:
+    - cd frontend
+    - docker build -t localhost:5000/frontend:1.0.0 .
+    - docker push localhost:5000/frontend:1.0.0
+  rules:
+    - changes:
+      - frontend/**/*
+
+deploy-backend:
   stage: deploy
   tags:
     - docker
@@ -60,3 +75,19 @@ restart-backend:
     - cp $compose_project_env .env
     - docker compose -f docker-compose-gitlab.yml pull backend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
+  needs:
+    - job: backend
+
+deploy-frontend:
+  stage: deploy
+  tags:
+    - docker
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - cp $compose_project_backend_env backend/.env
+    - cp $compose_project_frontend_env frontend/.env
+    - cp $compose_project_env .env
+    - docker compose -f docker-compose-gitlab.yml pull frontend
+    - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
+  needs:
+    - job: frontend
