@@ -77,6 +77,9 @@ deploy-backend:
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
   needs:
     - job: backend
+  rules:
+    - changes:
+      - backend/**/*
 
 deploy-frontend:
   stage: deploy
@@ -91,3 +94,6 @@ deploy-frontend:
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
   needs:
     - job: frontend
+  rules:
+    - changes:
+      - frontend/**/*
