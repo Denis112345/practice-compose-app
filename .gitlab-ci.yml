@@ -6,7 +6,8 @@ workflow:
 stages:
   - build-app
   - test
-  - build-docker-image
+  - build-and-push-docker-image
+  - 
 
 build-app:
   stage: build-app
@@ -36,11 +37,20 @@ test:
     - npm ci
     - npm run test:dist
 
-build-and-docker-image:
-  stage: build-docker-image
+build-and-push-docker-image:
+  stage: build-and-push-docker-image
   tags:
     - docker
   script:
     - cd backend
     - docker build -t localhost:5000/backend:1.0.0 .
     - docker push localhost:5000/backend:1.0.0
+
+restart-backend:
+  stage: deploy
+  tags:
+    - docker
+  script:
+    - cd "$CI_PROJECT_DIR"
+    - docker compose -f docker-compose-gitlab.yml pull backend
+    - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
