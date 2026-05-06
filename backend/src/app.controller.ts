@@ -9,7 +9,7 @@ export class AppController {
     private readonly database: DatabaseService,
     private readonly redis: RedisService,
   ) {}
-
+  // Test change
   @Get()
   root() {
     return { message: "NestJS API is alive" };
