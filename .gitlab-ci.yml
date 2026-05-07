@@ -24,8 +24,8 @@ build-app:
     key:
       files:
         - backend/package-lock.json
-      paths:
-        - .npm/
+    paths:
+      - .npm/
     policy: pull-push
   script:
     - cd backend
