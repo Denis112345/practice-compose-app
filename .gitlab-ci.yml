@@ -45,6 +45,13 @@ test:
   needs:
     - job: build-app
       artifacts: true
+  cache:
+    key:
+      files:
+        - backend/package-lock.json
+    paths:
+      - .npm/
+    policy: pull
   script:
     - cd backend
     - npm ci
