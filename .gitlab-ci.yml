@@ -17,13 +17,14 @@ variables:
 
 default:
   before_script:
-    - export START_TIME="$(date +%s)"
+    - date +%s > .job_start_time
     - echo "Job $CI_JOB_NAME preparation"
     - command -v docker >/dev/null 2>&1 && echo "Docker version $(docker -v)" || true
     - command -v node >/dev/null 2>&1 && echo "Node version $(node -v)" || true
   after_script:
-    - export END_TIME=$(date +%s)
-    - echo "Job $CI_JOB_NAME was done in $((END_TIME - START_TIME))"
+    - START_TIME=$(cat .job_start_time)
+    - END_TIME=$(date +%s)
+    - echo "Job $CI_JOB_NAME was done in $((END_TIME - START_TIME))s"
 build-app:
   stage: build-app
   tags:
