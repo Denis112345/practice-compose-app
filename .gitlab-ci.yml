@@ -12,11 +12,21 @@ stages:
   - build-and-push-docker-image
   - deploy
 
+variables:
+  - npm_config_cache: "@CI_PROJECT_DIR/.npm"
+
 build-app:
   stage: build-app
   tags:
     - docker
   image: node:20-slim
+  cache:
+    key:
+      files:
+        - backend/package-lock.json
+      paths:
+        - .npm/
+    policy: pull-push
   script:
     - cd backend
     - npm ci
