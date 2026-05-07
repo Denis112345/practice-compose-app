@@ -13,7 +13,7 @@ stages:
   - deploy
 
 variables:
-  npm_config_cache: "@CI_PROJECT_DIR/.npm"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
 
 build-app:
   stage: build-app
