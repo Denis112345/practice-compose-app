@@ -4,7 +4,7 @@ services:
     env_file:
       - ./frontend/.env
     ports:
-      - "8251:80"
+      - "${FRONT_PORT:-8251}:80"
     healthcheck:
       interval: 5s
       timeout: 2s
@@ -50,7 +50,7 @@ services:
       retries: 5
       start_period: 10s
     ports:
-      - "8512:3001"
+      - "${BACKEND_PORT:-8512}:3001"
     depends_on:
       db:
         condition: service_healthy

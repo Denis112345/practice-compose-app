@@ -2,7 +2,7 @@ workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       when: always
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop"'
       when: always
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
@@ -48,6 +48,10 @@ build-app:
       - backend/dist
       - backend/package.json
       - backend/package-lock.json
+  rules:
+  - changes:
+    - backend/**/*
+  - when: never
 
 test:
   stage: test
@@ -68,6 +72,10 @@ test:
     - cd backend
     - npm ci
     - npm run test:dist
+  rules:
+    - changes:
+      - backend/**/*
+    - when: never
 
 backend:
   stage: build-and-push-docker-image
@@ -83,6 +91,7 @@ backend:
   rules:
     - changes:
       - backend/**/*
+    - when: never
 
 frontend:
   stage: build-and-push-docker-image
@@ -96,6 +105,7 @@ frontend:
   rules:
     - changes:
       - frontend/**/*
+    - when: never
 
 deploy-backend:
   stage: deploy
@@ -106,6 +116,7 @@ deploy-backend:
     - cp $compose_project_backend_env backend/.env
     - cp $compose_project_frontend_env frontend/.env
     - cp $compose_project_env .env
+    - export BACKEND_PORT="$DEPLOY_PORT"
     - docker compose -f docker-compose-gitlab.yml pull backend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
   needs:
@@ -114,16 +125,17 @@ deploy-backend:
     - if: "$CI_COMMIT_BRANCH == 'main'"
       variables:
         DEPLOY_ENV: prod
-        DEPLOY_PORT: 8512
+        DEPLOY_PORT: "8512"
+      changes:
+        - backend/**/*
       when: manual
 
     - if: "$CI_COMMIT_BRANCH == 'develop'"
       variables:
         DEPLOY_ENV: develop
-        DEPLOY_PORT: 8512
-
-    - changes:
-      - backend/**/*
+        DEPLOY_PORT: "8513"
+      changes:
+        - backend/**/*
 
     - when: never
 
@@ -140,22 +152,28 @@ deploy-frontend:
     - cp $compose_project_backend_env backend/.env
     - cp $compose_project_frontend_env frontend/.env
     - cp $compose_project_env .env
+    - export FRONT_PORT="$DEPLOY_PORT"
     - docker compose -f docker-compose-gitlab.yml pull frontend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
   needs:
     - job: frontend
   rules:
     - if: "$CI_COMMIT_BRANCH == 'main'"
+      changes:
+        - frontend/**/*
       variables:
         DEPLOY_ENV: 'prod'
-        DEPLOY_PORT: 8251
+        DEPLOY_PORT: "8251"
+      when: manual
 
-    - if: "$CI_COMMIT_BRANCH == 'deploy'"
+    - if: "$CI_COMMIT_BRANCH == 'develop'"
+      changes:
+        - frontend/**/*
       variables:
         DEPLOY_ENV: 'develop'
-        DEPLOY_PORT: 8251
-
-    - changes:
-      - frontend/**/*
+        DEPLOY_PORT: "8252"
     
     - when: never
+  environment:
+    name: $DEPLOY_ENV
+    url: http://localhost:$DEPLOY_PORT
