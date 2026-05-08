@@ -15,6 +15,7 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     const startedAt = Date.now();
 
