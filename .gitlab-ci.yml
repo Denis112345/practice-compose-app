@@ -78,7 +78,6 @@ test:
     - npm run test:dist
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: manual
     - changes:
         - backend/**/*
     - when: never
