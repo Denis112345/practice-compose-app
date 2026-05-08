@@ -2,6 +2,8 @@ workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
       when: always
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      when: always
     - if: '$CI_PIPELINE_SOURCE == "web"'
       when: always
     - when: never
@@ -71,6 +73,8 @@ backend:
   stage: build-and-push-docker-image
   tags:
     - docker
+  needs:
+    - job: test
   script:
     - cd backend
     - cp $compose_project_backend_env .env
@@ -107,8 +111,25 @@ deploy-backend:
   needs:
     - job: backend
   rules:
+    - if: "$CI_COMMIT_BRANCH == 'main'"
+      variables:
+        DEPLOY_ENV: prod
+        DEPLOY_PORT: 8512
+      when: manual
+
+    - if: "$CI_COMMIT_BRANCH == 'develop'"
+      variables:
+        DEPLOY_ENV: develop
+        DEPLOY_PORT: 8512
+
     - changes:
       - backend/**/*
+
+    - when: never
+
+  environment:
+    name: $DEPLOY_ENV
+    url: http://localhost:$DEPLOY_PORT
 
 deploy-frontend:
   stage: deploy
@@ -124,5 +145,17 @@ deploy-frontend:
   needs:
     - job: frontend
   rules:
+    - if: "$CI_COMMIT_BRANCH == 'main'"
+      variables:
+        DEPLOY_ENV: 'prod'
+        DEPLOY_PORT: 8251
+
+    - if: "$CI_COMMIT_BRANCH == 'deploy'"
+      variables:
+        DEPLOY_ENV: 'develop'
+        DEPLOY_PORT: 8251
+
     - changes:
       - frontend/**/*
+    
+    - when: never
