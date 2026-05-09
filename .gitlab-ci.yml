@@ -122,8 +122,14 @@ frontend:
     - docker
   script:
     - cd frontend
+    - echo "DEPLOY_ENV=$DEPLOY_ENV"
+    - echo "FRONT_OUT_PORT=$FRONT_OUT_PORT"
+    - echo "FRONT_OUT_PORT_PROD=$FRONT_OUT_PORT_PROD"
+    - echo "FRONT_OUT_PORT_DEV=$FRONT_OUT_PORT_DEV"
+    - env | grep -E 'FRONT|DEPLOY' || true
     - cp $compose_project_frontend_env .env
     - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> .env
+    - cat .env
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
   rules:
