@@ -36,12 +36,123 @@ default:
       - .npm/
     policy: pull-push
 
-build-app:
-  stage: build-app
+.rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - backend/**/*
+
+    - when: never
+
+.rules_backend_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
+      changes:
+        - backend/**/*
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
+      changes:
+        - backend/**/*
+      when: manual
+
+    - when: never
+
+.rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - frontend/**/*
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+
+    - when: never
+
+.rules_frontend_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - when: never
+
+.docker_tag_node_img:
   tags:
     - docker
   image: node:20-slim
-  extends: .cache_npm_download_libs_pull_push
+
+build-app:
+  stage: build-app
+  extends:
+    - .cache_npm_download_libs_pull_push
+    - .rules_backend
+    - .docker_tag_node_img
   script:
     - cd backend
     - npm ci
@@ -51,60 +162,27 @@ build-app:
       - backend/dist
       - backend/package.json
       - backend/package-lock.json
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - backend/**/*
-
-    - when: never
 
 test:
   stage: test
-  tags:
-    - docker
-  image: node:20-slim
   needs:
     - job: build-app
       artifacts: true
       optional: true
-  cache:
-    key:
-      files:
-        - backend/package-lock.json
-    paths:
-      - .npm/
-    policy: pull
+  extends:
+    - .cache_npm_download_libs_pull
+    - .rules_backend
+    - .docker_tag_node_img
   script:
     - cd backend
     - npm ci
     - npm run test:dist
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - backend/**/*
-
-    - when: never
 
 backend:
   stage: build-and-push-docker-image
   tags:
     - docker
+  extends: .rules_backend
   needs:
     - job: test
       optional: true
@@ -113,23 +191,10 @@ backend:
     - cp $compose_project_backend_env .env
     - docker build -t localhost:5000/backend:1.0.0 .
     - docker push localhost:5000/backend:1.0.0
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - backend/**/*
-
-    - when: never
 
 frontend:
   stage: build-and-push-docker-image
+  extends: .rules_frontend
   tags:
     - docker
   script:
@@ -144,35 +209,12 @@ frontend:
     - cat .env
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
-      changes:
-        - frontend/**/*
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - frontend/**/*
-      variables:
-        DEPLOY_ENV: "develop"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
-
-    - when: never
 
 deploy-backend:
   stage: deploy
   tags:
     - docker
+  extends: .rules_backend_deploy
   script:
     - echo "ENV SET"
     - echo "---------------------------------------------------"
@@ -190,36 +232,6 @@ deploy-backend:
   needs:
     - job: backend
       optional: true
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - when: never
 
   environment:
     name: $DEPLOY_ENV
@@ -227,6 +239,7 @@ deploy-backend:
 
 deploy-frontend:
   stage: deploy
+  extends: .rules_frontend_deploy
   tags:
     - docker
   script:
@@ -248,36 +261,6 @@ deploy-frontend:
       optional: true
     - job: deploy-backend
       optional: true
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
-      changes:
-        - frontend/**/*
-      when: manual
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
-      changes:
-        - frontend/**/*
-      when: manual
-
-    - when: never
 
   environment:
     name: $DEPLOY_ENV
