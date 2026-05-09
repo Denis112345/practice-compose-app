@@ -41,7 +41,7 @@ build-app:
   tags:
     - docker
   image: node:20-slim
-  extends: cache_npm_download_libs_pull_push
+  extends: .cache_npm_download_libs_pull_push
   script:
     - cd backend
     - npm ci
