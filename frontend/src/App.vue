@@ -8,6 +8,7 @@ if (!API_BASE) {
   throw new Error("Missing required env VITE_API_BASE");
 }
 
+
 const token = ref(localStorage.getItem("token"));
 const user = ref(null);
 const notes = ref([]);
@@ -144,7 +145,7 @@ onMounted(async () => {
       <div class="brand">
         <span class="brand-mark">V</span>
         <div>
-          <h1>Vue Practice Login 5</h1>
+          <h1>Vue Practice Login 523</h1>
           <p>Vue, Node.js, PostgreSQL, Redis</p>
         </div>
       </div>
