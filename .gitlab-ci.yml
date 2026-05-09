@@ -18,21 +18,30 @@ default:
     - END_TIME=$(date +%s)
     - echo "Job $CI_JOB_NAME was done in $((END_TIME - START_TIME))s"
 
-.cache_npm_download_libs: &cache_npm_download_libs
+.cache_npm_download_libs_pull_push:
   cache:
     key:
       files:
         - backend/package-lock.json
     paths:
       - .npm/
+    policy: pull-push
+
+.cache_npm_download_libs_pull:
+  cache:
+    key:
+      files:
+        - backend/package-lock.json
+    paths:
+      - .npm/
+    policy: pull-push
 
 build-app:
   stage: build-app
   tags:
     - docker
   image: node:20-slim
-  cache: *cache_npm_download_libs
-    policy: pull-push
+  extends: cache_npm_download_libs_pull_push
   script:
     - cd backend
     - npm ci
