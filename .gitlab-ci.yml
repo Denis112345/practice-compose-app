@@ -124,21 +124,30 @@ frontend:
     - cd frontend
     - cp $compose_project_frontend_env .env
     - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> .env
-    - export FRONT_PORT="$FRONT_OUT_PORT"
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
   rules:
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
     - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
       changes:
         - frontend/**/*
 
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
     - if: '$CI_COMMIT_BRANCH == "develop"'
       changes:
         - frontend/**/*
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
 
     - when: never
 
