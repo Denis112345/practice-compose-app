@@ -123,6 +123,8 @@ frontend:
   script:
     - cd frontend
     - cp $compose_project_frontend_env .env
+    - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> frontend/.env
+    - export FRONT_PORT="$FRONT_OUT_PORT"
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
   rules:
@@ -209,8 +211,6 @@ deploy-frontend:
     - cp $compose_project_backend_env backend/.env
     - cp $compose_project_frontend_env frontend/.env
     - cp $compose_project_env .env
-    - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> frontend/.env
-    - export FRONT_PORT="$FRONT_OUT_PORT"
     - echo "---------------------------------------------------\n\n"
     - echo "DEPLOY"
     - echo "---------------------------------------------------"
