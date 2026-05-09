@@ -248,7 +248,7 @@ deploy-frontend:
         DEPLOY_ENV: "prod"
         FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
       changes:
-        - backend/**/*
+        - frontend/**/*
       when: manual
 
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
@@ -262,7 +262,7 @@ deploy-frontend:
         DEPLOY_ENV: "develop"
         FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
       changes:
-        - backend/**/*
+        - frontend/**/*
       when: manual
 
     - when: never

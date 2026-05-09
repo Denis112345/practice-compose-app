@@ -8,6 +8,7 @@ if (!API_BASE) {
   throw new Error("Missing required env VITE_API_BASE");
 }
 
+
 const token = ref(localStorage.getItem("token"));
 const user = ref(null);
 const notes = ref([]);
