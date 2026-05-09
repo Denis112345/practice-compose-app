@@ -1,13 +1,3 @@
-workflow:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "develop"'
-      when: always
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: always
-    - when: never
-
 stages:
   - build-app
   - test
@@ -50,10 +40,18 @@ build-app:
       - backend/package.json
       - backend/package-lock.json
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: manual
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
         - backend/**/*
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - backend/**/*
+
     - when: never
 
 test:
@@ -77,9 +75,18 @@ test:
     - npm ci
     - npm run test:dist
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
         - backend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - backend/**/*
+
     - when: never
 
 backend:
@@ -95,10 +102,18 @@ backend:
     - docker build -t localhost:5000/backend:1.0.0 .
     - docker push localhost:5000/backend:1.0.0
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: manual
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
         - backend/**/*
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - backend/**/*
+
     - when: never
 
 frontend:
@@ -111,10 +126,18 @@ frontend:
     - docker build -t localhost:5000/frontend:1.0.0 .
     - docker push localhost:5000/frontend:1.0.0
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: manual
-    - changes:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
         - frontend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - frontend/**/*
+
     - when: never
 
 deploy-backend:
@@ -122,11 +145,16 @@ deploy-backend:
   tags:
     - docker
   script:
+    - echo "DEPLOY_ENV=$DEPLOY_ENV"
+    - echo "BACKEND_OUT_PORT=$BACKEND_OUT_PORT"
+    - echo "BACKEND_OUT_PORT_PROD=$BACKEND_OUT_PORT_PROD"
+    - echo "BACKEND_OUT_PORT_DEV=$BACKEND_OUT_PORT_DEV"
+    - echo "---------------------------------------------------"
     - cd "$CI_PROJECT_DIR"
     - cp $compose_project_backend_env backend/.env
     - cp $compose_project_frontend_env frontend/.env
     - cp $compose_project_env .env
-    - export BACKEND_PORT="$DEPLOY_PORT"
+    - export BACKEND_PORT="$BACKEND_OUT_PORT"
     - docker compose -f docker-compose-gitlab.yml pull backend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps backend
   needs:
@@ -136,48 +164,59 @@ deploy-backend:
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
       variables:
         DEPLOY_ENV: "prod"
-        DEPLOY_PORT: "8512"
-      when: manual
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        DEPLOY_PORT: "8513"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
       when: manual
 
     - if: '$CI_COMMIT_BRANCH == "main"'
       variables:
         DEPLOY_ENV: "prod"
-        DEPLOY_PORT: "8512"
-      changes:
-        - backend/**/*
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
       when: manual
 
     - if: '$CI_COMMIT_BRANCH == "develop"'
       variables:
         DEPLOY_ENV: "develop"
-        DEPLOY_PORT: "8513"
-      changes:
-        - backend/**/*
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
+      when: manual
 
     - when: never
 
   environment:
     name: $DEPLOY_ENV
-    url: http://localhost:$DEPLOY_PORT
+    url: http://localhost:$BACKEND_OUT_PORT
 
 deploy-frontend:
   stage: deploy
   tags:
     - docker
   script:
+    - echo "LOGS"
+    - echo "---------------------------------------------------"
+    - echo "DEPLOY_ENV=$DEPLOY_ENV"
+    - echo "FRONT_OUT_PORT=$FRONT_OUT_PORT"
+    - echo "FRONT_OUT_PORT_PROD=$FRONT_OUT_PORT_PROD"
+    - echo "FRONT_OUT_PORT_DEV=$FRONT_OUT_PORT_DEV"
+    - echo "---------------------------------------------------\n\n"
+    - echo "ENV SET"
+    - echo "---------------------------------------------------"
     - cd "$CI_PROJECT_DIR"
     - cp $compose_project_backend_env backend/.env
     - cp $compose_project_frontend_env frontend/.env
     - cp $compose_project_env .env
-    - export FRONT_PORT="$DEPLOY_PORT"
+    - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> frontend/.env
+    - export FRONT_PORT="$FRONT_OUT_PORT"
+    - echo "---------------------------------------------------\n\n"
+    - echo "DEPLOY"
+    - echo "---------------------------------------------------"
     - docker compose -f docker-compose-gitlab.yml pull frontend
     - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
+    - echo "---------------------------------------------------"
   needs:
     - job: frontend
       optional: true
@@ -185,32 +224,29 @@ deploy-frontend:
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
       variables:
         DEPLOY_ENV: "prod"
-        DEPLOY_PORT: "8251"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
       when: manual
 
     - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
       variables:
         DEPLOY_ENV: "develop"
-        DEPLOY_PORT: "8252"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/**/*
-      variables:
-        DEPLOY_ENV: "prod"
-        DEPLOY_PORT: "8251"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
       when: manual
 
     - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - frontend/**/*
       variables:
         DEPLOY_ENV: "develop"
-        DEPLOY_PORT: "8252"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      when: manual
 
     - when: never
 
   environment:
     name: $DEPLOY_ENV
-    url: http://localhost:$DEPLOY_PORT
+    url: http://localhost:$FRONT_OUT_PORT
