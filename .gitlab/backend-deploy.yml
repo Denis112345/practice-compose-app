@@ -1,43 +1,11 @@
 stages:
   - deploy-backend
 
-.rules_backend_deploy:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - when: never
 
 deploy-backend:
   stage: deploy-backend
   tags:
     - docker
-  extends: .rules_backend_deploy
   script:
     - echo "ENV SET"
     - echo "---------------------------------------------------"
