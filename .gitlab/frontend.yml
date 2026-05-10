@@ -1,0 +1,105 @@
+
+.rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - frontend/**/*
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+
+    - when: never
+
+.rules_frontend_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - when: never
+
+frontend:
+  stage: build-and-push-docker-image
+  extends: .rules_frontend
+  tags:
+    - docker
+  script:
+    - cd frontend
+    - echo "DEPLOY_ENV=$DEPLOY_ENV"
+    - echo "FRONT_OUT_PORT=$FRONT_OUT_PORT"
+    - echo "FRONT_OUT_PORT_PROD=$FRONT_OUT_PORT_PROD"
+    - echo "FRONT_OUT_PORT_DEV=$FRONT_OUT_PORT_DEV"
+    - env | grep -E 'FRONT|DEPLOY' || true
+    - cp $compose_project_frontend_env .env
+    - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> .env
+    - cat .env
+    - docker build -t localhost:5000/frontend:1.0.0 .
+    - docker push localhost:5000/frontend:1.0.0
+
+deploy-frontend:
+  stage: deploy
+  extends: .rules_frontend_deploy
+  tags:
+    - docker
+  script:
+    - echo "ENV SET"
+    - echo "---------------------------------------------------"
+    - cd "$CI_PROJECT_DIR"
+    - cp $compose_project_backend_env backend/.env
+    - cp $compose_project_frontend_env frontend/.env
+    - cp $compose_project_env .env
+    - echo "FRONT_PORT=$FRONT_OUT_PORT" >> .env
+    - echo "---------------------------------------------------\n\n"
+    - echo "DEPLOY"
+    - echo "---------------------------------------------------"
+    - docker compose -f docker-compose-gitlab.yml pull frontend
+    - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
+    - echo "---------------------------------------------------"
+  needs:
+    - job: frontend
+      optional: true
+    - job: deploy-backend
+      optional: true
+
+  environment:
+    name: $DEPLOY_ENV
+    url: http://localhost:$FRONT_OUT_PORT
