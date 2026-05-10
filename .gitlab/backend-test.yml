@@ -24,13 +24,13 @@ build-backend:
       - backend/package-lock.json
 
 test:
-  extends: .docker_tag_node_img
+  extends: 
+    - .docker_tag_node_img
+    - .cache_npm_download_libs_pull
   stage: test
   needs:
     - job: build-backend
       artifacts: true
-  extends:
-    - .cache_npm_download_libs_pull
   script:
     - cd backend
     - npm ci
