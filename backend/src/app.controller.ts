@@ -19,6 +19,7 @@ export class AppController {
     await this.database.query("select 1");
     await this.redis.client.ping();
 
+    
     return { api: "ok", postgres: "ok", redis: "ok" };
   }
 }
