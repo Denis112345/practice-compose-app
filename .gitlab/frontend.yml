@@ -1,23 +1,23 @@
 include:
   - local: ".gitlab/frontend-rules.yml"
 
-frontend:
+trigger-frontend-delivery:
   stage: build-and-push-docker-image
   extends: .rules_frontend
   trigger:
     include: .gitlab/frontend-delivery.yml
     strategy: depend
 
-deploy-frontend:
+trigger-frontend-deploy:
   stage: deploy
   extends: .rules_frontend_deploy
   trigger:
     include: .gitlab/frontend-deploy.yml
     strategy: depend
   needs:
-    - job: frontend
+    - job: trigger-frontend-delivery
       optional: true
-    - job: deploy-backend
+    - job: trigger-backend-deploy
       optional: true
 
   environment:
