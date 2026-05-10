@@ -3,13 +3,13 @@ stages:
 
 include:
   - local: ".gitlab/template.yml"
-  - local: ".gitlab/frontend-rules.yml"
+  - local: ".gitlab/frontend-trigger-pipeline-rules.yml"
 
 frontend-deploy:
   stage: deploy
   tags:
     - docker
-  extends: .rules_frontend_deploy
+  extends: .rules_frontend_trigger_pipeline_deploy
   script:
     - echo "ENV SET"
     - echo "---------------------------------------------------"
