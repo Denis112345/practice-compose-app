@@ -3,6 +3,7 @@ include:
 
 frontend:
   stage: build-and-push-docker-image
+  extends: .rules_frontend
   trigger:
     include: .gitlab/frontend-delivery.yml
     strategy: depend
