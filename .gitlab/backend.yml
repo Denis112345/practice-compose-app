@@ -65,4 +65,4 @@ trigger-deploy:
     - job: backend
       optional: true
   trigger:
-    include: .gitlab/ci/backend-deploy.yml
+    include: .gitlab/backend-deploy.yml
