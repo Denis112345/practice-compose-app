@@ -1,0 +1,47 @@
+.rules_backend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - backend/**/*
+
+    - when: never
+
+.rules_backend_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
+      changes:
+        - backend/**/*
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
+      changes:
+        - backend/**/*
+      when: manual
+
+    - when: never

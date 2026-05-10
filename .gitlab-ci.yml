@@ -1,5 +1,4 @@
 stages:
-  - build-app
   - test
   - build-and-push-docker-image
   - deploy

@@ -1,101 +1,29 @@
-.rules_backend:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+include:
+  - local: ".gitlab/cache_npm_download.yml"
+  - local: ".gitlab/backend-rules.yml"
 
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      changes:
-        - backend/**/*
-
-    - when: never
-
-build-app:
-  stage: build-app
-  extends:
-    - .cache_npm_download_libs_pull_push
-    - .rules_backend
-    - .docker_tag_node_img
-  script:
-    - cd backend
-    - npm ci
-    - npm run build
-  artifacts:
-    paths:
-      - backend/dist
-      - backend/package.json
-      - backend/package-lock.json
-
-.rules_backend_deploy:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      variables:
-        DEPLOY_ENV: "prod"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_PROD"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      when: manual
-
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-      variables:
-        DEPLOY_ENV: "develop"
-        BACKEND_OUT_PORT: "$BACKEND_OUT_PORT_DEV"
-      changes:
-        - backend/**/*
-      when: manual
-
-    - when: never
-
-
-test:
+trigger-backend-test:
   stage: test
-  needs:
-    - job: build-app
-      artifacts: true
-      optional: true
   extends:
-    - .cache_npm_download_libs_pull
     - .rules_backend
-    - .docker_tag_node_img
-  script:
-    - cd backend
-    - npm ci
-    - npm run test:dist
-
-backend:
+  trigger:
+    include: .gitlab/backend-test.yml
+    strategy: depend
+  
+trigger-backend-delivery:
   stage: build-and-push-docker-image
-  tags:
-    - docker
   extends: .rules_backend
   needs:
-    - job: test
+    - job: trigger-backend-test
       optional: true
-  script:
-    - cd backend
-    - cp $compose_project_backend_env .env
-    - docker build -t localhost:5000/backend:1.0.0 .
-    - docker push localhost:5000/backend:1.0.0
+  trigger:
+    include: .gitlab/backend-delivery.yml
+    strategy: depend
 
-trigger-deploy:
+trigger-backend-deploy:
   stage: deploy
   needs:
-    - job: backend
+    - job: trigger-backend-delivery
       optional: true
   extends: .rules_backend_deploy
   trigger:
