@@ -1,5 +1,4 @@
 include:
-  - local: ".gitlab/cache_npm_download.yml"
   - local: ".gitlab/backend-rules.yml"
 
 trigger-backend-test:

@@ -1,0 +1,58 @@
+
+.rules_frontend:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - frontend/**/*
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+
+    - when: never
+
+.rules_frontend_deploy:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      variables:
+        DEPLOY_ENV: "prod"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_PROD"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      when: manual
+
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      variables:
+        DEPLOY_ENV: "develop"
+        FRONT_OUT_PORT: "$FRONT_OUT_PORT_DEV"
+      changes:
+        - frontend/**/*
+      when: manual
+
+    - when: never
