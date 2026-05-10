@@ -11,22 +11,9 @@ frontend:
 deploy-frontend:
   stage: deploy
   extends: .rules_frontend_deploy
-  tags:
-    - docker
-  script:
-    - echo "ENV SET"
-    - echo "---------------------------------------------------"
-    - cd "$CI_PROJECT_DIR"
-    - cp $compose_project_backend_env backend/.env
-    - cp $compose_project_frontend_env frontend/.env
-    - cp $compose_project_env .env
-    - echo "FRONT_PORT=$FRONT_OUT_PORT" >> .env
-    - echo "---------------------------------------------------\n\n"
-    - echo "DEPLOY"
-    - echo "---------------------------------------------------"
-    - docker compose -f docker-compose-gitlab.yml pull frontend
-    - docker compose -f docker-compose-gitlab.yml up -d --force-recreate --no-deps frontend
-    - echo "---------------------------------------------------"
+  trigger:
+    include: .gitlab/frontend-deploy.yml
+    strategy: depend
   needs:
     - job: frontend
       optional: true
