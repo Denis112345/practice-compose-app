@@ -1,0 +1,35 @@
+- name: Install Nginx # Название таски
+  apt: # Используемый модуль
+    name: nginx # Название пакета
+    state: present # Указывает установить nginx если его нет
+    update_cache: true # Нужно чтобы система сделала sudo apt update
+
+- name: Remove default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart Nginx
+
+- name: Copy Nginx config
+  template:
+    src: main.conf.jn2
+    dest: /etc/nginx/sites-available/main.conf
+  notify: Restart Nginx
+
+- name: Copy HTML file
+  copy:
+    src: html/index.html
+    dest: /var/www/html/index.html
+
+- name: Soft Link Nginx config
+  file: # Аналог ln -s, для хард ссылок использовать state: hard
+    src: /etc/nginx/sites-available/main.conf
+    dest: /etc/nginx/sites-enabled/main.conf
+    state: link
+  notify: Restart Nginx
+
+- name: Start nginx unit service # Название таски
+  service: # Модуль управление unit сервисами
+    name: nginx # Название сервиса
+    state: started # Желаемые статус
+    enabled: true # Включить ли сервис в автозагрузку
