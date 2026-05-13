@@ -1,0 +1,58 @@
+- name: Install required packages
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - iptables
+    state: present
+    update_cache: true
+
+- name: Check if k3s is already installed
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+- name: Download k3s install script
+  get_url:
+    url: "{{ k3s_install_url }}"
+    dest: /tmp/install-k3s.sh
+    mode: "0755"
+  when: not k3s_binary.stat.exists
+
+- name: Install k3s
+  command: /bin/sh /tmp/install-k3s.sh
+  environment:
+    INSTALL_K3S_EXEC: "{{ k3s_exec }}"
+  when: not k3s_binary.stat.exists
+
+- name: Enable and start k3s
+  systemd:
+    name: k3s
+    enabled: true
+    state: started
+
+- name: Create .kube directory
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0700"
+
+- name: Copy kubeconfig to user
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+    remote_src: true
+
+- name: Check nodes
+  command: k3s kubectl get nodes
+  register: k3s_nodes
+  changed_when: false
+
+- name: Show nodes
+  debug:
+    var: k3s_nodes.stdout_lines
