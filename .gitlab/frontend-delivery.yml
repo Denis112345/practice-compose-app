@@ -1,0 +1,19 @@
+stages:
+  - delivery
+
+include:
+  - local: ".gitlab/template.yml"
+  - local: ".gitlab/frontend-rules.yml"
+
+delivery-frontend:
+  stage: delivery
+  extends: .rules_frontend
+  tags:
+    - docker
+  script:
+    - cd frontend
+    - cp $compose_project_frontend_env .env
+    - echo "VITE_API_BASE=http://localhost:${FRONT_OUT_PORT}/api" >> .env
+    - cat .env
+    - docker build -t localhost:5000/frontend:1.0.0 .
+    - docker push localhost:5000/frontend:1.0.0

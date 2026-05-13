@@ -1,0 +1,8 @@
+ansible_host: "{{ vault_ansible_host }}"
+ansible_port: "{{ vault_ansible_port }}"
+ansible_user: "{{ vault_ansible_user }}"
+ansible_ssh_private_key_file: "{{ vault_ansible_ssh_path_key }}"
+
+ansible_become_password: "{{ vault_ansible_vm_password }}"
+ansible_become_method: sudo
+ansible_become_user: root

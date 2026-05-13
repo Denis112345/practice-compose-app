@@ -1,0 +1,6 @@
+- name: Setup nginx # Название плейбука
+  hosts: vm # Указываем группу хостов
+  become: true # Права sudo
+
+  roles:
+    - nginx

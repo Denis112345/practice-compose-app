@@ -1,0 +1,30 @@
+include:
+  - local: ".gitlab/backend-rules.yml"
+
+trigger-backend-test:
+  stage: test
+  extends:
+    - .rules_backend
+  trigger:
+    include: .gitlab/backend-test.yml
+    strategy: depend
+  
+trigger-backend-delivery:
+  stage: build-and-push-docker-image
+  extends: .rules_backend
+  needs:
+    - job: trigger-backend-test
+      optional: true
+  trigger:
+    include: .gitlab/backend-delivery.yml
+    strategy: depend
+
+trigger-backend-deploy:
+  stage: deploy
+  needs:
+    - job: trigger-backend-delivery
+      optional: true
+  extends: .rules_backend_deploy
+  trigger:
+    include: .gitlab/backend-deploy.yml
+    strategy: depend

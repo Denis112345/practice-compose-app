@@ -1,0 +1,25 @@
+include:
+  - local: ".gitlab/frontend-rules.yml"
+
+trigger-frontend-delivery:
+  stage: build-and-push-docker-image
+  extends: .rules_frontend
+  trigger:
+    include: .gitlab/frontend-delivery.yml
+    strategy: depend
+
+trigger-frontend-deploy:
+  stage: deploy
+  extends: .rules_frontend_deploy
+  trigger:
+    include: .gitlab/frontend-deploy.yml
+    strategy: depend
+  needs:
+    - job: trigger-frontend-delivery
+      optional: true
+    - job: trigger-backend-deploy
+      optional: true
+
+  environment:
+    name: $DEPLOY_ENV
+    url: http://localhost:$FRONT_OUT_PORT

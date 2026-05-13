@@ -10,3 +10,4 @@ jenkins_data/
 registry_data/
 .codex
 runner_config/
+*/.vault_pass

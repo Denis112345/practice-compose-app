@@ -1,0 +1,38 @@
+stages:
+  - build
+  - test
+
+include:
+  - local: ".gitlab/template.yml"
+  - local: ".gitlab/cache_npm_download.yml"
+  - local: ".gitlab/backend-rules.yml"
+
+build-backend:
+  stage: build
+  extends:
+    - .cache_npm_download_libs_pull_push
+    - .rules_backend
+    - .docker_tag_node_img
+  script:
+    - cd backend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - backend/dist
+      - backend/package.json
+      - backend/package-lock.json
+
+test:
+  extends: 
+    - .docker_tag_node_img
+    - .cache_npm_download_libs_pull
+  stage: test
+  needs:
+    - job: build-backend
+      artifacts: true
+  script:
+    - cd backend
+    - npm ci
+    - npm run test:dist
+  
