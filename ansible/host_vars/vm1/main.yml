@@ -6,3 +6,6 @@ ansible_ssh_private_key_file: "{{ vault_ansible_ssh_path_key }}"
 ansible_become_password: "{{ vault_ansible_vm_password }}"
 ansible_become_method: sudo
 ansible_become_user: root
+
+k3s_install_url: "https://get.k3s.io"
+k3s_exec: "server --write-kubeconfig-mode=644 --disable=traefik"
