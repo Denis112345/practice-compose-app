@@ -60,7 +60,6 @@ services:
     networks:
       - monitor-net
       - default
-
   node-exporter:
     image: localhost:5000/prom/node-exporter:master
     container_name: node-exporter
@@ -71,7 +70,6 @@ services:
       - '--path.rootfs=/host'
     networks:
       - monitor-net
-  
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.55.1
     privileged: true
@@ -98,8 +96,7 @@ services:
       - node-exporter
     networks:
       - monitor-net
-    restart: unless-stopped
-    
+    restart: unless-stopped    
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -112,7 +109,6 @@ services:
     networks:
       - monitor-net
     restart: unless-stopped
-
   registry:
     image: registry:2.8
     restart: unless-stopped
@@ -122,7 +118,6 @@ services:
       - "./registry_data:/var/lib/registry"
     networks:
     - gitlab-network
-
   docker-dind:
     image: docker:27-dind
     privileged: true
@@ -135,8 +130,7 @@ services:
       timeout: 5s
       retries: 12
       start_period: 10s
-    restart: unless-stopped
-    
+    restart: unless-stopped    
   gitlab:
     image: gitlab/gitlab-ce:latest
     deploy:
